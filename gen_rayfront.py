@@ -3,7 +3,7 @@ from poke.writing import write_rayfront_to_serial
 from poke.poke_math import np
 
 # set up the file
-pth = 'C:/Users/douglase/Desktop/raytrace_files/keck_2_orkid_path.zmx'
+pth = 'C:/Users/douglase/Desktop/raytrace_files/keck_fresh_orkid.zmx'
 
 # user params
 nrays = 64
@@ -12,8 +12,8 @@ pupil_radius = 10950/2
 max_fov = 0.001
 coat = 0.4 + 1j*7
 glass = 1.5
-a = np.array([1,0,0])
-ap = np.array([0.9997619135,0.0213432698,0.0045366521]) # ray from Py edge of pupil
+a = np.array([1.,0.,0.])
+ap = np.array([-0.9997697464,-0.0214581958,0.0000000000]) # PY ray
 x = np.cross(a,ap)
 x /= np.linalg.norm(x)
 
@@ -36,14 +36,14 @@ sod = {'coating':coat,'surf':40,'mode':'reflect'}
 ifm = {'coating':coat,'surf':43,'mode':'reflect'}
 afm = {'coating':coat,'surf':46,'mode':'reflect'}
 
-fl1 = {'coating':glass,'surf':49,'mode':'transmit'}
-fl2 = {'coating':glass,'surf':50,'mode':'transmit'}
+fl1 = {'coating':(1,glass),'surf':49,'mode':'transmit'}
+fl2 = {'coating':(glass,1),'surf':50,'mode':'transmit'}
 
 obs = {'coating':coat,'surf':53,'mode':'reflect'}
 
-od1 = {'coating':glass,'surf':56,'mode':'transmit'}
-od2 = {'coating':glass,'surf':57,'mode':'transmit'}
-od3 = {'coating':glass,'surf':58,'mode':'transmit'}
+od1 = {'coating':(1,glass),'surf':56,'mode':'transmit'}
+od2 = {'coating':(glass,glass*1.1),'surf':57,'mode':'transmit'}
+od3 = {'coating':(glass,1),'surf':58,'mode':'transmit'}
 
 
 surflist = [m1,m2,m3,k1,k2,k3,tt,o1,pu,o2,ird,sod,ifm,afm,fl1,fl2,obs,od1,od2,od3]
@@ -51,9 +51,14 @@ surflist = [m1,m2,m3,k1,k2,k3,tt,o1,pu,o2,ird,sod,ifm,afm,fl1,fl2,obs,od1,od2,od
 rf = Rayfront(nrays,wvl,pupil_radius,max_fov)
 rf.as_polarized(surflist)
 rf.trace_rayset(pth)
-# rf.compute_jones_pupil(aloc=a,exit_x=x)
+rf.compute_jones_pupil(aloc=a,exit_x=x)
 
-# import poke.plotting as plot
-# plot.jones_pupil(rf)
+import poke.plotting as plot
+plot.jones_pupil(rf)
+import matplotlib.pyplot as plt
+plt.figure()
+plt.scatter(rf.xData[0][0],rf.yData[0,0])
+plt.colorbar()
+plt.show()
 
 write_rayfront_to_serial(rf,f'rayfronts/k2_orkid_topupil_{nrays}rays_{int(wvl*1e9)}nm')
